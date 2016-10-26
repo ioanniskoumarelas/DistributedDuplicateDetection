@@ -1,3 +1,5 @@
+package de.hpi.is.ddd;
+
 /**
  * Created by jokoum on 10/26/16.
  */
