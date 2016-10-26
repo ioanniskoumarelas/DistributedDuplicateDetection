@@ -11,4 +11,8 @@ public class Foo {
     public static String getDummyString() {
         return "Hello, World!";
     }
+
+    public static String getDummyString2() {
+        return "Hello, World! Nice to meet you.";
+    }
 }
