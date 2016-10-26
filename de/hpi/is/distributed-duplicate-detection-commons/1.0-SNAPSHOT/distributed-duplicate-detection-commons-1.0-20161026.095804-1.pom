@@ -8,14 +8,15 @@
     <artifactId>distributed-duplicate-detection-commons</artifactId>
     <version>1.0-SNAPSHOT</version>
 
-    <!--<scm>-->
-        <!--<developerConnection>scm:git:https://github.com/JohnKoumarelas/DistributedDuplicateDetection</developerConnection>-->
-    <!--</scm>-->
-
     <!-- Following  http://maven.apache.org/maven-release/maven-release-plugin/usage.html
                     and
                     http://stackoverflow.com/questions/14013644/hosting-a-maven-repository-on-github
                     to setup connection of the project with Maven -->
+
+    <!--<scm>-->
+        <!--<developerConnection>scm:git:https://github.com/JohnKoumarelas/DistributedDuplicateDetection</developerConnection>-->
+    <!--</scm>-->
+
     <properties>
         <!-- github server corresponds to entry in ~/.m2/settings.xml -->
         <github.global.server>github</github.global.server>
