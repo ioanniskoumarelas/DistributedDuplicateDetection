@@ -57,10 +57,10 @@
                     http://stackoverflow.com/questions/14013644/hosting-a-maven-repository-on-github
                     to setup connection of the project with Maven -->
 
-    <!--<scm>-->
-        <!--<developerConnection>scm:git:https://github.com/JohnKoumarelas/DistributedDuplicateDetection</developerConnection>-->
-    <!--</scm>-->
-
+<!--     <scm>
+        <developerConnection>scm:git:https://github.com/JohnKoumarelas/DistributedDuplicateDetection</developerConnection>
+    </scm>
+ -->
     <properties>
         <!-- github server corresponds to entry in ~/.m2/settings.xml -->
         <github.global.server>github</github.global.server>
@@ -71,6 +71,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.5.1</version>
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
