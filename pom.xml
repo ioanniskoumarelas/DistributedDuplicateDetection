@@ -44,6 +44,12 @@
             <artifactId>opencsv</artifactId>
             <version>3.8</version>
         </dependency>
+        <!-- For SimilarityFunctionForPeopleDataset-->
+		<dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.6.2</version>
+        </dependency>
     </dependencies>
 
     <!-- Following  http://maven.apache.org/maven-release/maven-release-plugin/usage.html
