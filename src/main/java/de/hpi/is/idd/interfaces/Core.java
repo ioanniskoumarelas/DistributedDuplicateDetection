@@ -1,4 +1,4 @@
-package de.hpi.idd;
+package de.hpi.is.idd.interfaces;
 
 import java.util.List;
 import java.util.Map;
