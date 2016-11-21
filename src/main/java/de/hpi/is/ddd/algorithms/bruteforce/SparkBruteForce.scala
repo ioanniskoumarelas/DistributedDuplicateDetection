@@ -156,10 +156,21 @@ object SparkBruteForce extends App {
   }
 
   override def main(args: Array[String]) = {
+    val argsMap: util.Map[String, String] = new util.HashMap[String, String]
+    for (arg <- args) {
+      val toks: Array[String] = arg.split("=")
+      argsMap.put(toks(0), toks(1))
+    }
+
+    val master = if (argsMap.containsKey("master")) argsMap.get("master") else "local[*]"
+    dataset = if (argsMap.containsKey("dataset")) argsMap.get("dataset") else "file://" + "/data/datasets/incremental_duplicate_detection/cora/cora_v3.tsv"
+    goldStandard = if (argsMap.containsKey("goldStandard")) argsMap.get("goldStandard") else  "/data/datasets/incremental_duplicate_detection/cora/cora_ground_truth.tsv"
+    resultDir = if (argsMap.containsKey("resultDir")) argsMap.get("resultDir") else  "file://" + "/data/projects/project_seminar_distributed_duplicate_detection/working_dir/cora/"
+
     ses = SparkSession
       .builder()
       .appName("Spark DDD BruteForce")
-      .master("local[*]")
+      .master(master)
       .getOrCreate()
 
     sc = ses.sparkContext
@@ -174,10 +185,6 @@ object SparkBruteForce extends App {
     n = sc.defaultParallelism // * 4
 
     du = new CoraUtility() with Serializable
-
-    dataset = "file://" + "/data/datasets/incremental_duplicate_detection/cora/cora_v3.tsv"
-    goldStandard = "/data/datasets/incremental_duplicate_detection/cora/cora_ground_truth.tsv"
-    resultDir = "file://" + "/data/projects/project_seminar_distributed_duplicate_detection/working_dir/cora/"
 
     val fs = FileSystem.get(new URI(resultDir), sc.hadoopConfiguration)
 
