@@ -24,6 +24,8 @@ public class Evaluation {
     int fp;
     int fn;
 
+    long totalComparisons = 0L;
+
     @Override
     public String toString() {
         return  " tp: " + tp +
@@ -34,6 +36,7 @@ public class Evaluation {
                 " recall: " + calculateRecall() +
                 " fmeasure: " + calculateFMeasure() +
                 " executionTime (ms): " + executionTime +
+                " totalComparisons: " + totalComparisons +
                 " availableProcessors: " + availableProcessors +
                 " totalMemory: " + totalMemory +
                 " maxMemory: " + maxMemory +
@@ -143,5 +146,13 @@ public class Evaluation {
 
     public void setAvailableNodes(int availableNodes) {
         this.availableNodes = availableNodes;
+    }
+
+    public long getTotalComparisons() {
+        return totalComparisons;
+    }
+
+    public void setTotalComparisons(long totalComparisons) {
+        this.totalComparisons = totalComparisons;
     }
 }

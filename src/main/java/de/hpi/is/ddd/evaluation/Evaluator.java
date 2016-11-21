@@ -32,9 +32,12 @@ public class Evaluator {
 //    private UnionFind<String> ufA;
 //    private Set<Pair<String, String>> pairsA;
 
+    private long totalComparisons;
+
     private long startTime;
 
     public Evaluator(File goldStandard) {
+        this.totalComparisons = 0;
         this.goldStandard = goldStandard;
         pairsGS = new HashSet<Pair<String, String>>();
         try (CSVParser parser = new CSVParser(new FileReader(goldStandard), FORMAT)) {
@@ -115,6 +118,9 @@ public class Evaluator {
         evl.setFreeMemory((Runtime.getRuntime().freeMemory() / 1024) / 1024);
         evl.setUsedMemory(evl.getTotalMemory() - evl.getFreeMemory());
 
+        evl.setTotalComparisons(totalComparisons);
+
+
         return evl;
     }
 
@@ -128,4 +134,7 @@ public class Evaluator {
         return uf;
     }
 
+    public void setTotalComparisons(long totalComparisons) {
+        this.totalComparisons = totalComparisons;
+    }
 }

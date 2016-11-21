@@ -17,7 +17,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Example Brute Force implementation for finding duplicates in the Apache Spark environment.
+ * Example Brute Force implementation for finding duplicates in local environment, simulating a distributed one.
  *
  * Given the full dataset, tries to uniformly split the pair comparisons across the given nodes.
  *
@@ -58,38 +58,49 @@ public class ParallelBruteForce {
         /* DatasetUtils of the current dataset */
         private DatasetUtils du;
 
-        public PseudoNode(Integer nodeID, List<Map<String, Object>> records, List<Integer> recordsAssigned, DatasetUtils du) {
+        private long comparisons;
+
+        public PseudoNode(Integer nodeID) {
             this.nodeID = nodeID;
-            this.records = records;
-            this.recordsAssigned = recordsAssigned;
-            this.du = du;
+            this.comparisons = 0L;
         }
 
         /**
          * Calculates the duplicates and writes them into HDFS.
          */
-        public void deduplicate() {
+        public Set<Pair<String, String>> deduplicate(Integer i, List<Map<String, Object>> records, DatasetUtils du) {
             Set<Pair<String, String>> duplicates = new HashSet<>();
-            for (Integer i: recordsAssigned) {
-                for (int j = i + 1; j < records.size(); ++j) {
-                    Double sim = du.calculateSimilarity(records.get(i), records.get(j), null);
-                    if (sim >= du.getDatasetThreshold()) {
-                        duplicates.add(Pair.of(String.valueOf(records.get(i).get("id")), String.valueOf(records.get(j).get("id"))));
-                    }
+            for (int j = i + 1; j < records.size(); ++j) {
+                Double sim = du.calculateSimilarity(records.get(i), records.get(j), null);
+                ++comparisons;
+                if (sim >= du.getDatasetThreshold()) {
+                    duplicates.add(Pair.of(String.valueOf(records.get(i).get("id")), String.valueOf(records.get(j).get("id"))));
                 }
             }
-
-            writeToHDFS(duplicates);
+            return duplicates;
         }
 
-        private Set<Pair<String, String>> duplicatesInHDFS;
+        /**
+         * Calculates the duplicates and writes them into HDFS.
+         */
+        public void deduplicateAll(List<Map<String, Object>> records, List<Integer> recordsAssigned, DatasetUtils du) {
+            System.out.println(nodeID + " started");
+            Set<Pair<String, String>> duplicates = new HashSet<>();
+            for (Integer i: recordsAssigned) {
+                duplicates.addAll(deduplicate(i, records, du));
+            }
+            writeToHDFS(duplicates);
+            System.out.println(nodeID + " finished");
+        }
+
+        private Set<Pair<String, String>> duplicatesInHDFS = new HashSet<>();
 
         /**
          * Writes the given duplicates to HDFS.
          * @param duplicatesInHDFS
          */
         private void writeToHDFS(Set<Pair<String, String>> duplicatesInHDFS) {
-            this.duplicatesInHDFS = duplicatesInHDFS;
+            this.duplicatesInHDFS.addAll(duplicatesInHDFS);
         }
 
         /**
@@ -100,31 +111,33 @@ public class ParallelBruteForce {
         }
     }
 
+    private long totalComparisons = 0L;
+
     /**
      * Having a partitioning, replicates data across nodes, assigning them the pairs they have to check for
      *  similarities and finally collects and merges the results.
      */
-    public Set<Pair<String, String>> deduplicate(Map<Integer, List<Integer>> partitioningPrecalculated) {
-        Map<Integer, List<Integer>> partitioning = partitioningPrecalculated;
-        if (partitioning == null) {
-            partitioning = getPartitioning();
-        }
-
-        /* 1. Replicate data, 2. Send comparisons */
+    public Set<Pair<String, String>> deduplicate(Map<Integer, List<Integer>> partitioning) {
+        /* Replicate data, Send comparisons */
         Map<Integer, PseudoNode> nodes = new HashMap<>();
         for (int i = 0 ; i < n; ++i) {
-            nodes.put(i, new PseudoNode(i, records, partitioning.get(i), du));
+            nodes.put(i, new PseudoNode(i));
         }
 
-        /* 3. Execute */
-        nodes.entrySet().parallelStream().forEach(x -> x.getValue().deduplicate());
+        /* Execute */
+        nodes.entrySet().parallelStream().forEach(x -> x.getValue().deduplicateAll(records, partitioning.get(x.getKey()), du));
 
-        /* 4. collect and merge results */
+        /* Collect and merge results */
         List<Set<Pair<String, String>>> duplicatesLists = nodes.entrySet().parallelStream().map(x -> x.getValue().retrieveDuplicatesFromHDFS()).collect(Collectors.toList());
         Set<Pair<String, String>> duplicates = new HashSet<>();
 
         /* From each list, get the set x and from each set x add the pair y to the duplicates set */
         duplicatesLists.forEach(x -> x.forEach(duplicates::add));
+
+        /* Retrieve the calculated comparisons */
+        for (int i = 0 ; i < n; ++i) {
+            totalComparisons += nodes.get(i).comparisons;
+        }
 
         return duplicates;
     }
@@ -137,8 +150,10 @@ public class ParallelBruteForce {
      *   TODO: Replace with a closed type, instead of the greedy calculation that takes place now.
      *
      * @return a partitioning of the comparisons across nodes.
+     *
+     * It is in the form of:  partition --> [record idx]
      */
-    public Map<Integer, List<Integer>> getPartitioning() {
+    public static Map<Integer, List<Integer>> getPartitioning(int n, int m) {
         /* Total number of comparisons between all records */
         int totalCmp = (int) Math.floor(m * (m - 1) / 2.0);
 
@@ -192,7 +207,7 @@ public class ParallelBruteForce {
             argsMap.put(toks[0], toks[1]);
         }
 
-        int n = 16; // Number of nodes
+        int n = 8; // Number of nodes
         if (argsMap.containsKey("n")) {
             n = Integer.parseInt(argsMap.get("n"));
         }
@@ -201,13 +216,12 @@ public class ParallelBruteForce {
         if (argsMap.containsKey("dataset")) {
             dataset = new File(argsMap.get("dataset"));
         }
-        DatasetUtils du;
+        DatasetUtils du = new CoraUtility();
 
         File goldStandard = new File("/data/datasets/incremental_duplicate_detection/cora/cora_ground_truth.tsv");
         if (argsMap.containsKey("goldStandard")) {
             goldStandard = new File(argsMap.get("goldStandard"));
         }
-        Evaluator evaluator = new Evaluator(goldStandard);
 
         List<Map<String, Object>> records = new ArrayList<>();
 
@@ -221,13 +235,18 @@ public class ParallelBruteForce {
             throw new RuntimeException("Error while parsing the dataset file", e);
         }
 
+        int m = records.size();
+
+        Evaluator evaluator = new Evaluator(goldStandard);
+
         ParallelBruteForce pbf = new ParallelBruteForce(n, records.size(), records, du);
-        Map<Integer, List<Integer>> partitioning = pbf.getPartitioning();
+        Map<Integer, List<Integer>> partitioning = pbf.getPartitioning(n, m);
         System.out.println("Partitioning; " + partitioning);
 
         Set<Pair<String, String>> duplicates = pbf.deduplicate(partitioning);
         System.out.println("Duplicates (pairs): " + duplicates.size());
 
+        evaluator.setTotalComparisons(pbf.totalComparisons);
         Evaluation evaluation = evaluator.evaluate(duplicates);
         System.out.println("Evaluation: " + evaluation);
     }

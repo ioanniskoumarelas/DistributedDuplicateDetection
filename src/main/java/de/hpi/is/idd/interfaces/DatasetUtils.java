@@ -27,7 +27,7 @@ abstract public class DatasetUtils {
 	
 	/**
 	 * 
-	 * @param The record in a Key-Value <String, String> format. 
+	 * @param values: The record in a Key-Value <String, String> format.
 	 * 			For instance: <'id', '1'>, <'attribute1', 'value1'>, <'attribute2', 'value2'>, ..., <'attributeN', valueN'>
 	 * @return A dictionary with key-value objects: e.g. <attribute1, value1>
 	 * 			Each value can be of any type, thus it is Object (and not String).
