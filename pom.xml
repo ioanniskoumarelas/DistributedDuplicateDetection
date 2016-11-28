@@ -64,7 +64,7 @@
             <artifactId>opencsv</artifactId>
             <version>3.8</version>
         </dependency>
-        <!-- For SimilarityFunctionForPeopleDataset-->
+        <!-- For FebrlUtility-->
 		<dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>

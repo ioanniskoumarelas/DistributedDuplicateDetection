@@ -1,9 +1,6 @@
 package de.hpi.is.idd.datasets;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
 import com.opencsv.CSVWriter;
@@ -14,7 +11,7 @@ import org.simmetrics.metrics.StringMetrics;
 /**
  * Created by axel on 21.05.16.
  */
-public class CoraUtility extends de.hpi.is.idd.interfaces.DatasetUtils {
+public class CoraUtility extends de.hpi.is.idd.interfaces.DatasetUtils implements Serializable {
 
     public static StringMetric levenshtein = StringMetrics.levenshtein();
     public static StringMetric jaroWinkler = StringMetrics.jaroWinkler();

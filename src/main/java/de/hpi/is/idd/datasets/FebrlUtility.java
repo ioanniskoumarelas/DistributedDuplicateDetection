@@ -6,12 +6,13 @@ import com.google.gson.reflect.TypeToken;
 import org.simmetrics.StringMetric;
 import org.simmetrics.simplifiers.Simplifiers;
 
+import java.io.Serializable;
 import java.lang.reflect.Type;
 import java.util.*;
 
 import static org.simmetrics.builders.StringMetricBuilder.with;
 
-public class SimilarityFunctionForPeopleDataset extends de.hpi.is.idd.interfaces.DatasetUtils {
+public class FebrlUtility extends de.hpi.is.idd.interfaces.DatasetUtils implements Serializable {
     private final static String identifierJSON =
             "[[{\"attribute\":\"given_name\",\"similarityFunction\":\"JaroWinkler\",\"weight\":0.2}," +
             "{\"attribute\":\"surname\",\"similarityFunction\":\"Levenshtein\",\"weight\":0.4}, " +
@@ -20,7 +21,7 @@ public class SimilarityFunctionForPeopleDataset extends de.hpi.is.idd.interfaces
 
     private final HashMap<String, Attribute> attributeMapping;
     private final List<List<String>> blockingKeys;
-    public SimilarityFunctionForPeopleDataset() {
+    public FebrlUtility() {
         datasetThreshold = 0.8;
         attributeMapping = new HashMap<>();
         blockingKeys = new ArrayList<>();

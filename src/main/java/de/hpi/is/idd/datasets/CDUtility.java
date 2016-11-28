@@ -1,5 +1,6 @@
 package de.hpi.is.idd.datasets;
 
+import java.io.Serializable;
 import java.text.Normalizer;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -12,7 +13,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 
-public class CDDataset extends de.hpi.is.idd.interfaces.DatasetUtils {
+public class CDUtility extends de.hpi.is.idd.interfaces.DatasetUtils implements Serializable {
 
 	static class CDRecord {
 
@@ -265,16 +266,16 @@ public class CDDataset extends de.hpi.is.idd.interfaces.DatasetUtils {
 		}
 		int diff = 0;
 		int max = 0;
-		int n = Math.max(CDDataset.getNumberOfDigits(year), CDDataset.getNumberOfDigits(year2));
+		int n = Math.max(CDUtility.getNumberOfDigits(year), CDUtility.getNumberOfDigits(year2));
 		for (int i = 0; i < n; i++) {
 			int weight = i + 1;
 			max += weight * 9;
-			diff += weight * Math.abs(CDDataset.getNthDigit(year, i) - CDDataset.getNthDigit(year2, i));
+			diff += weight * Math.abs(CDUtility.getNthDigit(year, i) - CDUtility.getNthDigit(year2, i));
 		}
 		return 1 - (double) diff / max;
 	}
 
-	public CDDataset() {
+	public CDUtility() {
 		datasetThreshold = THRESHOLD;
 	}
 
@@ -307,7 +308,7 @@ public class CDDataset extends de.hpi.is.idd.interfaces.DatasetUtils {
 		record.put(GENRE_NAME, value.get(GENRE_NAME));
 		record.put(CDEXTRA_NAME, value.get(CDEXTRA_NAME));
 		record.put(TRACKS_NAME, Arrays.asList(value.get(TRACKS_NAME).split(SEPERATOR)).stream()
-				.map(CDDataset::trimNumbers).map(CDDataset::normalize).collect(Collectors.toList()));
+				.map(CDUtility::trimNumbers).map(CDUtility::normalize).collect(Collectors.toList()));
 		return record;
 	}
 

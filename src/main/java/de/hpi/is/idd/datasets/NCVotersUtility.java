@@ -1,5 +1,6 @@
 package de.hpi.is.idd.datasets;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -10,7 +11,7 @@ import org.apache.commons.codec.language.DoubleMetaphone;
 import info.debatty.java.stringsimilarity.JaroWinkler;
 import info.debatty.java.stringsimilarity.NormalizedLevenshtein;
 
-public class NCVotersSimilarity extends de.hpi.is.idd.interfaces.DatasetUtils {
+public class NCVotersUtility extends de.hpi.is.idd.interfaces.DatasetUtils implements Serializable {
 
 	static final String ID = "id";
 	static final String FIRST_NAME = "first_name";
@@ -31,7 +32,6 @@ public class NCVotersSimilarity extends de.hpi.is.idd.interfaces.DatasetUtils {
 	JaroWinkler jw = new JaroWinkler();
 	DoubleMetaphone dm = new DoubleMetaphone();
 	NormalizedLevenshtein nl = new NormalizedLevenshtein();
-	NumberSimilarity nums = new NumberSimilarity();
 	
 	// sum of distances for all attributes
 	double distances;
@@ -39,7 +39,7 @@ public class NCVotersSimilarity extends de.hpi.is.idd.interfaces.DatasetUtils {
 	// attributes that are considered for similarity
 	int attribute_count;
 	
-	public NCVotersSimilarity() {
+	public NCVotersUtility() {
 		datasetThreshold = 0.75;
 	}
 	
@@ -92,7 +92,7 @@ public class NCVotersSimilarity extends de.hpi.is.idd.interfaces.DatasetUtils {
 			return 0.0;
 		} else {
 			if (o1 instanceof Integer)
-				return 1 - nums.distance(o1.toString(), o2.toString());
+				return 1 - hammingDistance(o1.toString(), o2.toString());
 			else
 				return 1 - nl.distance(o1.toString(), o2.toString());
 		}
@@ -186,9 +186,18 @@ public class NCVotersSimilarity extends de.hpi.is.idd.interfaces.DatasetUtils {
 		if (value1 instanceof String)
 			return jw.distance((String) value1, (String) value2);
 		else if (value1 instanceof Integer)
-			return nums.distance(((Integer) value1).toString(), ((Integer) value2).toString());
+			return hammingDistance(((Integer) value1).toString(), ((Integer) value2).toString());
 		else
 			return jw.distance(value1.toString(), value2.toString());
+	}
+
+	public double hammingDistance(String i1, String i2) {
+		int length = Math.min(i1.length(), i2.length());
+		int matching_digits = 0;
+		for (int i = 0; i < length; i++) {
+			if (i1.charAt(i) == i2.charAt(i)) matching_digits++;
+		}
+		return (double)matching_digits / length;
 	}
 
 	public Boolean isMatch(Map<String, Double> similarities) {
