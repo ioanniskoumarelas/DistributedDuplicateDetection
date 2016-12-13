@@ -1,6 +1,7 @@
 package de.hpi.is.idd.datasets;
 
-import java.io.Serializable;
+import org.apache.commons.lang3.StringUtils;
+
 import java.text.Normalizer;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -11,9 +12,9 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
+public class CDUtility extends de.hpi.is.idd.interfaces.DatasetUtils {
 
-public class CDUtility extends de.hpi.is.idd.interfaces.DatasetUtils implements Serializable {
+	private static final long serialVersionUID = -7666942644356996786L;
 
 	static class CDRecord {
 

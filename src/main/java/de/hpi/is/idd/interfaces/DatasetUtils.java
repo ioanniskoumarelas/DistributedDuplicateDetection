@@ -1,8 +1,9 @@
 package de.hpi.is.idd.interfaces;
 
+import java.io.Serializable;
 import java.util.Map;
 
-abstract public class DatasetUtils {
+abstract public class DatasetUtils implements Serializable {
 	
 	protected double datasetThreshold = Double.MIN_VALUE;
 
