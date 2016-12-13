@@ -6,6 +6,7 @@ import com.google.gson.reflect.TypeToken;
 import org.simmetrics.StringMetric;
 import org.simmetrics.simplifiers.Simplifiers;
 
+import java.io.Serializable;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -129,7 +130,9 @@ public class FebrlUtility extends de.hpi.is.idd.interfaces.DatasetUtils {
     /**
      * This class represents a attribute of the data set with the corresponding similarity function
      */
-    private class Attribute {
+    private class Attribute implements Serializable {
+
+        private static final long serialVersionUID = -4016706663794117103L;
         final private String attribute;
         final private String similarityFunction;
         final private float weight;
