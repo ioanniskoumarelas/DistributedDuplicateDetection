@@ -1,17 +1,16 @@
 package de.hpi.is.idd.datasets;
 
-import java.io.Serializable;
+import info.debatty.java.stringsimilarity.JaroWinkler;
+import info.debatty.java.stringsimilarity.NormalizedLevenshtein;
+
+import org.apache.commons.codec.language.DoubleMetaphone;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.codec.language.DoubleMetaphone;
-
-import info.debatty.java.stringsimilarity.JaroWinkler;
-import info.debatty.java.stringsimilarity.NormalizedLevenshtein;
-
-public class NCVotersUtility extends de.hpi.is.idd.interfaces.DatasetUtils implements Serializable {
+public class NCVotersUtility extends de.hpi.is.idd.interfaces.DatasetUtils {
 
 	static final String ID = "id";
 	static final String FIRST_NAME = "first_name";
@@ -28,9 +27,9 @@ public class NCVotersUtility extends de.hpi.is.idd.interfaces.DatasetUtils imple
 	static final String RACE = "race_desc";
 	static final String PARTY = "party_cd";
 	static final String COUNTY = "county_id";
-	
+	private static final long serialVersionUID = -7726140071035852774L;
+
 	JaroWinkler jw = new JaroWinkler();
-	DoubleMetaphone dm = new DoubleMetaphone();
 	NormalizedLevenshtein nl = new NormalizedLevenshtein();
 	
 	// sum of distances for all attributes
@@ -119,6 +118,7 @@ public class NCVotersUtility extends de.hpi.is.idd.interfaces.DatasetUtils imple
 		else {
 			// at least two of the three attributes have to have the same DoubleMetaphone-Encoding
 			int dms = 0;
+			DoubleMetaphone dm = new DoubleMetaphone();
 			if (dm.isDoubleMetaphoneEqual((String) record1.get(FIRST_NAME), (String) record2.get(FIRST_NAME))) dms++;  
 			if (dm.isDoubleMetaphoneEqual((String) record1.get(MIDDLE_NAME), (String) record2.get(MIDDLE_NAME))) dms++; 
 	        if (dm.isDoubleMetaphoneEqual((String) record1.get(LAST_NAME), (String) record2.get(LAST_NAME))) dms++;

@@ -1,18 +1,27 @@
 package de.hpi.is.idd.datasets;
 
-import java.io.*;
-import java.util.*;
-
 import com.opencsv.CSVWriter;
 
 import org.simmetrics.StringMetric;
 import org.simmetrics.metrics.StringMetrics;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 /**
  * Created by axel on 21.05.16.
  */
-public class CoraUtility extends de.hpi.is.idd.interfaces.DatasetUtils implements Serializable {
+public class CoraUtility extends de.hpi.is.idd.interfaces.DatasetUtils {
 
+    private static final long serialVersionUID = -3805141621258463961L;
     public static StringMetric levenshtein = StringMetrics.levenshtein();
     public static StringMetric jaroWinkler = StringMetrics.jaroWinkler();
     public static StringMetric longestCommonSubsequence = StringMetrics.longestCommonSubsequence();

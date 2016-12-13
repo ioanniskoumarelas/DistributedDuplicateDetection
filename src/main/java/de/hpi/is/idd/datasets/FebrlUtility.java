@@ -6,18 +6,23 @@ import com.google.gson.reflect.TypeToken;
 import org.simmetrics.StringMetric;
 import org.simmetrics.simplifiers.Simplifiers;
 
-import java.io.Serializable;
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import static org.simmetrics.builders.StringMetricBuilder.with;
 
-public class FebrlUtility extends de.hpi.is.idd.interfaces.DatasetUtils implements Serializable {
+public class FebrlUtility extends de.hpi.is.idd.interfaces.DatasetUtils {
     private final static String identifierJSON =
             "[[{\"attribute\":\"given_name\",\"similarityFunction\":\"JaroWinkler\",\"weight\":0.2}," +
             "{\"attribute\":\"surname\",\"similarityFunction\":\"Levenshtein\",\"weight\":0.4}, " +
             "{\"attribute\":\"soc_sec_id\",\"similarityFunction\":\"Levenshtein\",\"weight\":0.3}," +
             "{\"attribute\":\"age\",\"similarityFunction\":\"Equal\",\"weight\":0.1}]]";
+    private static final long serialVersionUID = -8278150440957880041L;
 
     private final HashMap<String, Attribute> attributeMapping;
     private final List<List<String>> blockingKeys;
