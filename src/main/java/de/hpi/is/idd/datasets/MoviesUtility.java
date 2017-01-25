@@ -1,6 +1,7 @@
 package de.hpi.is.idd.datasets;
 
 import info.debatty.java.stringsimilarity.NormalizedLevenshtein;
+import scala.Serializable;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -13,7 +14,7 @@ import java.util.Map.Entry;
 /**
  * Similarity Measure for the preprocessed Movies dataset
  */
-public class MoviesUtility extends de.hpi.is.idd.interfaces.DatasetUtils {
+public class MoviesUtility extends de.hpi.is.idd.interfaces.DatasetUtils implements Serializable {
 
 	private static final long serialVersionUID = 3242524398567930569L;
 	private NormalizedLevenshtein levenshtein = new NormalizedLevenshtein();

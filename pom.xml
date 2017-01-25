@@ -6,21 +6,21 @@
 
     <groupId>de.hpi.is</groupId>
     <artifactId>distributed-duplicate-detection-commons</artifactId>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.2-SNAPSHOT</version>
     <dependencies>
         <!-- https://mvnrepository.com/artifact/org.apache.spark/spark-core_2.10 -->
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-core_2.10</artifactId>
             <version>2.0.2</version>
-            <scope>provided</scope>
+            <!--<scope>provided</scope>-->
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.apache.spark/spark-sql_2.10 -->
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-sql_2.10</artifactId>
             <version>2.0.2</version>
-            <scope>provided</scope> <!--Is it?-->
+            <!--<scope>provided</scope> &lt;!&ndash;Is it?&ndash;&gt;-->
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.scala-lang/scala-library -->
@@ -194,6 +194,32 @@
                             <goal>site</goal>
                         </goals>
                         <phase>deploy</phase>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Includes the runtime dependencies -->
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <groupId>org.apache.maven.plugins</groupId>
+                <executions>
+                    <execution>
+                        <id>make-executable-jar-with-dependencies</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <archive>
+                                <manifest>
+                                    <addClasspath>true</addClasspath>
+                                    <mainClass>de.hpi.is.ddd.algorithms.bruteforce.SparkBruteForce</mainClass>
+                                </manifest>
+                            </archive>
+                            <descriptorRefs>
+                                <descriptorRef>jar-with-dependencies</descriptorRef>
+                            </descriptorRefs>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

@@ -30,9 +30,6 @@ object SparkBruteForce extends App {
   /* Number of records */
   var m: Int = 0
 
-  /* DatasetUtils of the current dataset */
-  var du: DatasetUtils = null
-
   var totalComparisons: Long = 0L
 
   /** Paths
@@ -106,7 +103,7 @@ object SparkBruteForce extends App {
     *
     * @return : util.Set[Pair[Record ID, Record ID\]\] | Set of pairs ready to be used by the Java evaluator.
     */
-  def deduplicate(): util.Set[Pair[String, String]] = {
+  def deduplicate(du: DatasetUtils): util.Set[Pair[String, String]] = {
     /* The whole set of records, that needs to be deduplicated */
     val df = sql.read.format("com.databricks.spark.csv")
       .option("inferSchema", "true")
@@ -184,7 +181,7 @@ object SparkBruteForce extends App {
     /* By default in a local execution, cores */
     n = sc.defaultParallelism // * 4
 
-    du = new CoraUtility() with Serializable
+    val du = new CoraUtility()
 
     val fs = FileSystem.get(new URI(resultDir), sc.hadoopConfiguration)
 
@@ -199,7 +196,7 @@ object SparkBruteForce extends App {
     val evaluator: Evaluator = new Evaluator(new File(goldStandard))
 
     println("Duplicates (pairs)")
-    val pairs = deduplicate()
+    val pairs = deduplicate(du)
     evaluator.setTotalComparisons(totalComparisons)
 
     println("Evaluation")

@@ -5,12 +5,13 @@ import info.debatty.java.stringsimilarity.NormalizedLevenshtein;
 
 import org.apache.commons.codec.language.DoubleMetaphone;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class NCVotersUtility extends de.hpi.is.idd.interfaces.DatasetUtils {
+public class NCVotersUtility extends de.hpi.is.idd.interfaces.DatasetUtils implements Serializable {
 
 	static final String ID = "id";
 	static final String FIRST_NAME = "first_name";

@@ -1,6 +1,7 @@
 package de.hpi.is.idd.datasets;
 
 import org.apache.commons.lang3.StringUtils;
+import scala.Serializable;
 
 import java.text.Normalizer;
 import java.util.Arrays;
@@ -12,7 +13,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class CDUtility extends de.hpi.is.idd.interfaces.DatasetUtils {
+public class CDUtility extends de.hpi.is.idd.interfaces.DatasetUtils implements Serializable {
 
 	private static final long serialVersionUID = -7666942644356996786L;
 

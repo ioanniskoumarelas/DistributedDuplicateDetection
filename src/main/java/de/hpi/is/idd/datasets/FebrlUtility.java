@@ -17,7 +17,7 @@ import java.util.Map;
 
 import static org.simmetrics.builders.StringMetricBuilder.with;
 
-public class FebrlUtility extends de.hpi.is.idd.interfaces.DatasetUtils {
+public class FebrlUtility extends de.hpi.is.idd.interfaces.DatasetUtils implements scala.Serializable  {
     private final static String identifierJSON =
             "[[{\"attribute\":\"given_name\",\"similarityFunction\":\"JaroWinkler\",\"weight\":0.2}," +
             "{\"attribute\":\"surname\",\"similarityFunction\":\"Levenshtein\",\"weight\":0.4}, " +
