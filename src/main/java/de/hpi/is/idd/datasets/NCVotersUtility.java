@@ -4,12 +4,14 @@ import info.debatty.java.stringsimilarity.JaroWinkler;
 import info.debatty.java.stringsimilarity.NormalizedLevenshtein;
 
 import org.apache.commons.codec.language.DoubleMetaphone;
+import org.simmetrics.StringDistance;
+import org.simmetrics.StringMetric;
+import org.simmetrics.metrics.HammingDistance;
+import org.simmetrics.metrics.Levenshtein;
+import org.simmetrics.metrics.MongeElkan;
 
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class NCVotersUtility extends de.hpi.is.idd.interfaces.DatasetUtils implements Serializable {
 
@@ -32,6 +34,9 @@ public class NCVotersUtility extends de.hpi.is.idd.interfaces.DatasetUtils imple
 
 	JaroWinkler jw = new JaroWinkler();
 	NormalizedLevenshtein nl = new NormalizedLevenshtein();
+
+	StringDistance hd = HammingDistance.forString();
+	MongeElkan me = new MongeElkan(new Levenshtein());
 	
 	// sum of distances for all attributes
 	double distances;
@@ -97,70 +102,102 @@ public class NCVotersUtility extends de.hpi.is.idd.interfaces.DatasetUtils imple
 				return 1 - nl.distance(o1.toString(), o2.toString());
 		}
 	}
+
+	public Double calculateSimilarityNaive(Map<String, Object> record1, Map<String, Object> record2, Map<String, String> parameters) {
+        Double specialCases = treatSpecialCases(record1, record2);
+        if (specialCases >= 0) {
+            return specialCases;
+        }
+
+        Double simFN = objectSimilarity(record1.get(FIRST_NAME), record2.get(FIRST_NAME));
+        Double simMN = objectSimilarity(record1.get(MIDDLE_NAME), record2.get(MIDDLE_NAME));
+        Double simLN = objectSimilarity(record1.get(LAST_NAME), record2.get(LAST_NAME));
+
+        List<String> streetToks1 = new ArrayList<>(Arrays.asList(((String)record1.get(STREET)).split(" ")));
+        List<String> streetToks2 = new ArrayList<>(Arrays.asList(((String)record2.get(STREET)).split(" ")));
+        Double simSTR = 0.0;
+        if (streetToks1.size() != 0 && streetToks2.size() != 0) {
+            simSTR = (double) me.compare(streetToks1, streetToks2);
+        }
+
+        Double simHSNB = 0.0;
+        if(record1.size() != record2.size()) {
+            simHSNB = (double) hd.distance((String)record1.get(HOUSE_NUM), (String)record2.get(HOUSE_NUM)) / record1.size();
+        }
+
+        double sim = simFN * 0.15 + simMN * 0.1 + simLN * 0.25 + simSTR * 0.35 + simHSNB * 0.15;
+
+        return sim;
+    }
+
+    public Double calculateSimilarityIDD(Map<String, Object> record1, Map<String, Object> record2, Map<String, String> parameters) {
+        Double specialCases = treatSpecialCases(record1, record2);
+        if (specialCases >= 0)
+            return specialCases;
+
+        distances = 0;
+        attribute_count = 5;
+
+        distances += objectSimilarity(record1.get(BIRTH_PLACE), record2.get(BIRTH_PLACE));
+        distances += (record1.get(PARTY).equals(record2.get(PARTY)) ? 1.0 : 0.0);
+
+        // first name rarely changes by much, so large differences influence negatively
+        distances += (1 - jw.distance((String) record1.get(FIRST_NAME), (String) record2.get(FIRST_NAME))) * 2 - 1;
+
+        // when marrying, old last name often moves to middle name
+        // if this happens, ignore middle and last name, and only consider the rest
+        if (record1.get(MIDDLE_NAME).equals(record2.get(LAST_NAME)) || record2.get(MIDDLE_NAME).equals(record1.get(LAST_NAME)))
+            attribute_count -= 2;
+        else {
+            // at least two of the three attributes have to have the same DoubleMetaphone-Encoding
+            int dms = 0;
+            DoubleMetaphone dm = new DoubleMetaphone();
+            if (dm.isDoubleMetaphoneEqual((String) record1.get(FIRST_NAME), (String) record2.get(FIRST_NAME))) dms++;
+            if (dm.isDoubleMetaphoneEqual((String) record1.get(MIDDLE_NAME), (String) record2.get(MIDDLE_NAME))) dms++;
+            if (dm.isDoubleMetaphoneEqual((String) record1.get(LAST_NAME), (String) record2.get(LAST_NAME))) dms++;
+            if (dms < 2)
+                return 0.0;
+
+            distances += objectSimilarity(record1.get(MIDDLE_NAME), record2.get(MIDDLE_NAME));
+            distances += objectSimilarity(record1.get(LAST_NAME), record2.get(LAST_NAME));
+        }
+
+        // calculate difference of addresses
+        double address_distance = 0.0, street_distance = 0.0;
+        int address_attributes = 3, old_attribute_count = attribute_count;
+        street_distance += objectSimilarity(record1.get(STREET), record2.get(STREET), "UNKNOWN");
+        address_distance += street_distance;
+        if (old_attribute_count != attribute_count) street_distance = 1.0;
+        address_distance += objectSimilarity(record1.get(ZIP_CODE), record2.get(ZIP_CODE), 0) * street_distance;
+        address_distance += objectSimilarity(record1.get(HOUSE_NUM), record2.get(HOUSE_NUM), 0) * street_distance;
+        address_attributes += old_attribute_count - attribute_count;
+        attribute_count = old_attribute_count;
+
+        String s1, s2, mc, mw;
+        Integer c1, c2;
+        s1 = (String) record1.get(STATUS_REASON);
+        s2 = (String) record2.get(STATUS_REASON);
+        c1 = (Integer) record1.get(COUNTY);
+        c2 = (Integer) record2.get(COUNTY);
+        mc = "MOVED FROM COUNTY";
+        mw = "MOVED WITHIN STATE";
+
+        // if moved from county, and counties are different, or moved within state
+        // consider address information less heavily
+        if (((s1.equals(mc) || s2.equals(mc)) && (!c1.equals(c2))) || (s1.equals(mw) || s2.equals(mw)))	{
+            distances += (address_distance / address_attributes);
+            attribute_count += 1;
+        } else {
+            distances += address_distance;
+            attribute_count += address_attributes;
+        }
+
+        return Double.max(distances / attribute_count, 0.0);
+    }
 	
 	public Double calculateSimilarity(Map<String, Object> record1, Map<String, Object> record2, Map<String, String> parameters) {	
-		Double specialCases = treatSpecialCases(record1, record2);
-		if (specialCases >= 0)
-			return specialCases;
-
-		distances = 0;
-		attribute_count = 5;
-					
-		distances += objectSimilarity(record1.get(BIRTH_PLACE), record2.get(BIRTH_PLACE));
-		distances += (record1.get(PARTY).equals(record2.get(PARTY)) ? 1.0 : 0.0);
-		
-		// first name rarely changes by much, so large differences influence negatively
-		distances += (1 - jw.distance((String) record1.get(FIRST_NAME), (String) record2.get(FIRST_NAME))) * 2 - 1;
-			
-		// when marrying, old last name often moves to middle name
-		// if this happens, ignore middle and last name, and only consider the rest
-		if (record1.get(MIDDLE_NAME).equals(record2.get(LAST_NAME)) || record2.get(MIDDLE_NAME).equals(record1.get(LAST_NAME)))
-			attribute_count -= 2;
-		else {
-			// at least two of the three attributes have to have the same DoubleMetaphone-Encoding
-			int dms = 0;
-			DoubleMetaphone dm = new DoubleMetaphone();
-			if (dm.isDoubleMetaphoneEqual((String) record1.get(FIRST_NAME), (String) record2.get(FIRST_NAME))) dms++;  
-			if (dm.isDoubleMetaphoneEqual((String) record1.get(MIDDLE_NAME), (String) record2.get(MIDDLE_NAME))) dms++; 
-	        if (dm.isDoubleMetaphoneEqual((String) record1.get(LAST_NAME), (String) record2.get(LAST_NAME))) dms++;
-	        if (dms < 2) 
-	        	return 0.0;
-	        
-	        distances += objectSimilarity(record1.get(MIDDLE_NAME), record2.get(MIDDLE_NAME));
-	        distances += objectSimilarity(record1.get(LAST_NAME), record2.get(LAST_NAME));
-		}
-		   
-		// calculate difference of addresses
-		double address_distance = 0.0, street_distance = 0.0;
-		int address_attributes = 3, old_attribute_count = attribute_count;
-		street_distance += objectSimilarity(record1.get(STREET), record2.get(STREET), "UNKNOWN");
-		address_distance += street_distance;
-		if (old_attribute_count != attribute_count) street_distance = 1.0;
-		address_distance += objectSimilarity(record1.get(ZIP_CODE), record2.get(ZIP_CODE), 0) * street_distance;
-		address_distance += objectSimilarity(record1.get(HOUSE_NUM), record2.get(HOUSE_NUM), 0) * street_distance;
-		address_attributes += old_attribute_count - attribute_count;
-		attribute_count = old_attribute_count;
-		
-		String s1, s2, mc, mw;
-		Integer c1, c2;
-		s1 = (String) record1.get(STATUS_REASON);
-		s2 = (String) record2.get(STATUS_REASON);
-		c1 = (Integer) record1.get(COUNTY);
-		c2 = (Integer) record2.get(COUNTY);
-		mc = "MOVED FROM COUNTY";
-		mw = "MOVED WITHIN STATE";
-		
-		// if moved from county, and counties are different, or moved within state
-		// consider address information less heavily
-		if (((s1.equals(mc) || s2.equals(mc)) && (!c1.equals(c2))) || (s1.equals(mw) || s2.equals(mw)))	{
-			distances += (address_distance / address_attributes);
-			attribute_count += 1;
-		} else {
-			distances += address_distance;
-			attribute_count += address_attributes;
-		}
-		
-		return Double.max(distances / attribute_count, 0.0);
+		return calculateSimilarityIDD(record1, record2, parameters);
+//		return calculateSimilarityNaive(record1, record2, parameters);
 	}
 	
 	public Map<String, Object> parseRecord(Map<String, String> values) {
