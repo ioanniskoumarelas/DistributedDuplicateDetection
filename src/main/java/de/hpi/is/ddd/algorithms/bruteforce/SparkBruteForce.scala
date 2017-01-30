@@ -5,7 +5,7 @@ import java.net.URI
 import java.util
 
 import de.hpi.is.ddd.evaluation.Evaluator
-import de.hpi.is.idd.datasets.CoraUtility
+import de.hpi.is.idd.datasets._
 import de.hpi.is.idd.interfaces.DatasetUtils
 import org.apache.commons.lang3.tuple.Pair
 import org.apache.hadoop.fs.FileSystem
@@ -160,6 +160,7 @@ object SparkBruteForce extends App {
     }
 
     val master = if (argsMap.containsKey("master")) argsMap.get("master") else "local[*]"
+    val datasetName = if (argsMap.containsKey("datasetName")) argsMap.get("datasetName") else "ncvoters_idd"
     dataset = if (argsMap.containsKey("dataset")) argsMap.get("dataset") else "file://" + "/data/datasets/incremental_duplicate_detection/cora/cora_v3.tsv"
     goldStandard = if (argsMap.containsKey("goldStandard")) argsMap.get("goldStandard") else  "/data/datasets/incremental_duplicate_detection/cora/cora_ground_truth.tsv"
     resultDir = if (argsMap.containsKey("resultDir")) argsMap.get("resultDir") else  "file://" + "/data/projects/project_seminar_distributed_duplicate_detection/working_dir/cora/"
@@ -181,7 +182,16 @@ object SparkBruteForce extends App {
     /* By default in a local execution, cores */
     n = sc.defaultParallelism // * 4
 
-    val du = new CoraUtility()
+    val du = datasetName match {
+      case "cora"                 => new CoraUtility()
+      case "cd"                   => new CDUtility()
+      case "febrl"                => new FebrlUtility()
+      case "movies"               => new MoviesUtility()
+      case "ncvoters_idd"         => new NCVotersIDDUtility()
+      case "ncvoters_simple"  => new NCVotersSimpleUtility()
+//      case "ncvoters_alternative"    => new NCVotersAlternativeUtility()
+    }
+
 
     val fs = FileSystem.get(new URI(resultDir), sc.hadoopConfiguration)
 
